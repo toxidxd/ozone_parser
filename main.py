@@ -34,6 +34,8 @@ def get_products_list(item_name='headphones hyperx'):
     # page_down(driver=driver)
     # time.sleep(10)
 
+    driver.close()
+    driver.quit()
     try:
         find_links = driver.find_elements(By.CLASS_NAME, 'tile-hover-target')
         products_urls = list(set([f'{link.get_attribute("href")}' for link in find_links]))
@@ -47,24 +49,21 @@ def get_products_list(item_name='headphones hyperx'):
         with open('products_urls_dict.json', 'w', encoding='utf-8') as f:
             json.dump(products_urls_dict, f, indent=4, ensure_ascii=False)
 
+        time.sleep(2)
+
+        products_data = []
+
+        for url in products_urls[:3]:
+            data = collect_product_info(driver=driver, url=url)
+            logger.info(f'get product data id: {data.get("product_id")}')
+            time.sleep(2)
+            products_data.append(data)
+
+        with open('PRODUCTS_DATA.json', 'w', encoding='utf-8') as file:
+            json.dump(products_data, file, indent=4, ensure_ascii=False)
+
     except Exception as e:
         logger.error(f'cant collect links, {e}')
-
-    time.sleep(2)
-
-    products_data = []
-
-    for url in products_urls[:3]:
-        data = collect_product_info(driver=driver, url=url)
-        logger.info(f'get product data id: {data.get("product_id")}')
-        time.sleep(2)
-        products_data.append(data)
-
-    with open('PRODUCTS_DATA.json', 'w', encoding='utf-8') as file:
-        json.dump(products_data, file, indent=4, ensure_ascii=False)
-
-    driver.close()
-    driver.quit()
 
 
 def main():
