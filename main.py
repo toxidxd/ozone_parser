@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from functions import page_down
+from functions import collect_product_info
 
 
 def get_products_list(item_name='headphones hyperx'):
@@ -30,11 +31,11 @@ def get_products_list(item_name='headphones hyperx'):
     driver.get(url=current_url)
     time.sleep(3)
 
-    page_down(driver=driver)
-    time.sleep(10)
+    # page_down(driver=driver)
+    # time.sleep(10)
 
     try:
-        find_links =  driver.find_elements(By.CLASS_NAME, 'tile-hover-target')
+        find_links = driver.find_elements(By.CLASS_NAME, 'tile-hover-target')
         products_urls = list(set([f'{link.get_attribute("href")}' for link in find_links]))
         logger.info('links collected')
 
@@ -49,9 +50,18 @@ def get_products_list(item_name='headphones hyperx'):
     except Exception as e:
         logger.error(f'cant collect links, {e}')
 
+    time.sleep(2)
 
+    products_data = []
 
+    for url in products_urls[:3]:
+        data = collect_product_info(driver=driver, url=url)
+        logger.info(f'get product data id: {data.get("product_id")}')
+        time.sleep(2)
+        products_data.append(data)
 
+    with open('PRODUCTS_DATA.json', 'w', encoding='utf-8') as file:
+        json.dump(products_data, file, indent=4, ensure_ascii=False)
 
     driver.close()
     driver.quit()
@@ -60,7 +70,9 @@ def get_products_list(item_name='headphones hyperx'):
 def main():
     logger.add('log.log', format="{time} {level} {message}", level='INFO',
                rotation='10 KB', compression='zip')
-    get_products_list()
+    logger.info('start collect data')
+    get_products_list(item_name='notebooks')
+    logger.info('data collected')
 
 
 if __name__ == '__main__':
